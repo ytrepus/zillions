@@ -47,8 +47,6 @@ def name_int(num: int, scale='short') -> str:
     pass
     
 
-999999999999999999999999999999999999999999999999999999999999999999
-
 # dictionary: sexdecillion
 # henckle: sexdecillion
 # natural: sexdecillion
