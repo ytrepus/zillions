@@ -52,8 +52,8 @@ def num_digits(num: int) -> int:
     num = abs(num)
     return 1 if num == 0 else trunc(log10(num))
 
-def name_int(num: int, scale='short') -> str:
 
+def num_to_words(num: int, scale='short') -> str:
     # check number within nameable range
     if abs(num) > MAX_VALUE:
         raise ValueError("Number out of range.")
@@ -89,7 +89,6 @@ def get_periods(num: int) -> List[str]:
 
 
 def name_period(period: str) -> str:
-
     period = int(period)
     h_digit = period // 100
     t_digit = (period % 100) // 10
@@ -104,13 +103,13 @@ def name_period(period: str) -> str:
         to_name = TENS[t_digit] + '-' + ONES[o_digit]
 
     name = h_name + to_name
-    return re.sub(r' $', '', name)
+    return re.sub(r'[ -]$', '', name)
 
-def get_zillions(scale):
+def get_zillions(scale: str) -> List[str]:
     if scale == 'long_eu':
         return ZILLIONS[:2] + list(chain(*zip(ZILLIONS[2:], ZILLIARDS)))
     elif scale == 'long_br':
         return ZILLIONS[:2] + list(chain(*zip(ZILLIONS[2:],
                                    repeat("thousand"))))
     else:
-        return ZILLIONS  
+        return ZILLIONS
