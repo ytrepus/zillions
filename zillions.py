@@ -73,7 +73,7 @@ def num_to_words(num: int, scale='short') -> str:
             continue
         name_segment = f"{period_name} {zillion}"
         name_list.append(name_segment)
-    return re.sub(r' $', '', ' '.join(reversed(name_list)))
+    return sign + re.sub(r' $', '', ' '.join(reversed(name_list)))
 
 
 def get_periods(num: int) -> List[str]:
