@@ -89,13 +89,13 @@ def _zlist_gen(digits: int) -> Generator:
     """Generate a list of large number words required for the number name."""
     zstart = ceil(len(digits) / 3) - 2
     if zstart > 20:
-        yield from large_zlist_gen(zstart)
+        yield from _large_zlist_gen(zstart)
         zstart = 20
     for index in range(zstart, -1, -1):
         yield ' ' + ZILLIONS[index]
     yield ''
 
-def large_zlist_gen(zstart: int) -> Generator:
+def _large_zlist_gen(zstart: int) -> Generator:
     """Generate names for the extended range of zillions."""
     for index in range(zstart, 20, -1):
         prefix = LARGE_ZILLION_PREFIXES[index % 10]
