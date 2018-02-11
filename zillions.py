@@ -1,98 +1,78 @@
-"""Functions for naming large integers (using only dictionary words)
+"""A function for naming large integers
 
-    range: -999999999999999999999999999999999999999999999999999999999999999999
-        to +999999999999999999999999999999999999999999999999999999999999999999
+    Primary range: |x| < 10^66
+    Extended range: |x| < 10^306
 
-    This is the range of integers that can be named in the short scale using
-    words found in dictionaries*.  There are quite a few ad-hoc systems for 
-    naming numbers larger than this, but the lack of consistency and 
-    consensus, even among the more 'authoritative' options, is a bit 
-    unsatisfying, so I plan to stick with the core dictionary words.
+    The primary range is the range of integers that can be named in the short
+    scale (which is used in the English-speaking world) using number words 
+    that can be found in dictionaries.  This is the range enabled by default
+    and the only 'official' names for numbers, apart from a few scattered
+    larger ones like 'googol' and 'centillion'.
+    
+    The function can also name some larger integers if required.  For the
+    extended range, the names of large numbers are no longer standardized,
+    and this program uses a less-common system of words that first saw the
+    light of day in the nineteenth century, credited to a 'W.G. Henkle' and 
+    resurrected and tidied up in the publication 'Word Ways' over a series
+    of articles, including by Rudolf Ondrejka in 1968.
 
-    *Particularly, unabridged American dictionaries.  UK English dictionaries
-    like the Oxford English Dictionary not to have number words after
-    'decillion', which in the long scale allow you to name the exact same 
-    range.  Britain traditionally used the long scale, like much of the rest
-    of the world, but now uses the short scale in line with the USA.
-
-    Much more info on the long and short scales can be found here:
-    https://en.wikipedia.org/wiki/Long_and_short_scales
+    Functions:
+        num_to_words(num: int, extended: bool=False) -> str:
+            Returns the English name of a larger number.
 """
 
+from collections import deque
 from itertools import chain, repeat
-from math import log10, trunc
+from math import ceil, log10, trunc
 import re
-from typing import List
+from typing import List, Generator
 
-MAX_VALUE = 10**66 - 1
+def num_to_words(num: int, extended: bool=False) -> str:
+    """Returns the English name of a large number.
 
-ONES = [
-    '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'
-    ]
-TEENS = [
-    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 
-    'seventeen', 'eighteen', 'nineteen'
-    ]
-TENS = [
-    '', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 
-    'eighty', 'ninety'
-    ]
-ZILLIONS = [
-    '',  'thousand', 'million', 'billion', 'trillion', 'quadrillion', 
-    'quintillion', 'sextillion', 'septillion', 'octillion', 'nonillion', 
-    'decillion', 'undecillion', 'duodecillion', 'tredecillion', 
-    'quattuordecillion', 'quindecillion', 'sexdecillion', 'septendecillion', 
-    'octodecillion', 'novemdecillion', 'vigintillion'
-    ]
+    If extended set to False (the default), the range is |x| < 10^66,
+    otherwise, numbers up to |x| < 10^306 can be named.
+    """
 
-ZILLIARDS = [z.replace('ion', 'iard') for z in ZILLIONS[2:]]
-
-def num_digits(num: int) -> int:
-    """Return the number of digits of an integer."""
-    num = abs(num)
-    return 1 if num == 0 else trunc(log10(num))
-
-
-def num_to_words(num: int, scale='short') -> str:
-    # check number within nameable range
-    if abs(num) > MAX_VALUE:
-        raise ValueError("Number out of range.")
-    # return 'zero' if num = 0
+    max_value = 10**306 - 1 if extended else 10**66 - 1
+    if abs(num) > max_value:
+        raise ValueError("Number out of naming range.")
     elif num == 0:
         return 'zero'
 
-    sign = 'negative ' if num < 0 else ''
+    sign_word = 'negative ' if num < 0 else ''
     num = abs(num)
 
-    periods = get_periods(num)
-    period_names = map(name_period, periods)
-    zillions = get_zillions(scale)
-    name_list = []
-    for period_name, zillion in zip(period_names, zillions):
-        if not period_name:
-            continue
-        name_segment = f"{period_name} {zillion}"
-        name_list.append(name_segment)
-    return sign + re.sub(r' $', '', ' '.join(reversed(name_list)))
-
-
-def get_periods(num: int) -> List[str]:
     digits = str(num)
-    start = -3
-    period = digits[start:]
-    period_list = []
-    while period:
-        period_list.append(period)
-        start, end = start - 3, start
-        period = digits[start: end]
-    return period_list
 
+    # small names are the names of each group of three digits, and zlist
+    # is an iterator containing large number words, the 'zillions'
+    small_names = _small_name_gen(digits)
+    zlist = _zlist_gen(digits)
+    
+    number_name = []
+    for name, zillion in zip(small_names, zlist):
+        if name:
+            number_name.append(name + zillion)
+    number_name = sign_word + ' '.join(number_name)
+    return re.sub(r',$', '', number_name)
 
-def name_period(period: str) -> str:
-    period = int(period)
-    h_digit = period // 100
-    t_digit = (period % 100) // 10
-    o_digit = period % 10
+def _small_name_gen(digits: str) -> Generator:
+    """Generate a list of number names for each group of three digits"""
+    slice_stop = 3 if len(digits) % 3 == 0 else len(digits) % 3
+    digit_slice = slice(0, slice_stop)
+    group = digits[digit_slice]
+    while group:
+        yield _get_small_name(group)
+        digit_slice = slice(digit_slice.stop, digit_slice.stop + 3)
+        group = digits[digit_slice]
+
+def _get_small_name(group: str) -> str:
+    """Name numbers 1 to 999"""
+    group = int(group)
+    h_digit = group // 100
+    t_digit = (group % 100) // 10
+    o_digit = group % 10
     h_name = ONES[h_digit] + " hundred " if h_digit else ""
     
     if t_digit == 0:
@@ -103,13 +83,55 @@ def name_period(period: str) -> str:
         to_name = TENS[t_digit] + '-' + ONES[o_digit]
 
     name = h_name + to_name
-    return re.sub(r'[ -]$', '', name)
+    return re.sub(r'[-\s]$', '', name)
 
-def get_zillions(scale: str) -> List[str]:
-    if scale == 'long_eu':
-        return ZILLIONS[:2] + list(chain(*zip(ZILLIONS[2:], ZILLIARDS)))
-    elif scale == 'long_br':
-        return ZILLIONS[:2] + list(chain(*zip(ZILLIONS[2:],
-                                   repeat("thousand"))))
-    else:
-        return ZILLIONS
+def _zlist_gen(digits: int) -> Generator:
+    """Generate a list of large number words required for the number name."""
+    zstart = ceil(len(digits) / 3) - 2
+    if zstart > 20:
+        yield from large_zlist_gen(zstart)
+        zstart = 20
+    for index in range(zstart, -1, -1):
+        yield ' ' + ZILLIONS[index]
+    yield ''
+
+def large_zlist_gen(zstart: int) -> Generator:
+    """Generate names for the extended range of zillions."""
+    for index in range(zstart, 20, -1):
+        prefix = LARGE_ZILLION_PREFIXES[index % 10]
+        zillion = LARGE_ZILLIONS[index // 10]
+        yield ' ' + prefix + zillion
+
+# lists of number words
+ONES = [
+    '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'
+    ]
+
+TEENS = [
+    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 
+    'seventeen', 'eighteen', 'nineteen'
+    ]
+
+TENS = [
+    '', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 
+    'eighty', 'ninety'
+    ]
+
+ZILLIONS = [
+    'thousand', 'million', 'billion', 'trillion', 'quadrillion', 
+    'quintillion', 'sextillion', 'septillion', 'octillion', 'nonillion', 
+    'decillion', 'undecillion', 'duodecillion', 'tredecillion', 
+    'quattuordecillion', 'quindecillion', 'sexdecillion', 'septendecillion', 
+    'octodecillion', 'novemdecillion', 'vigintillion'
+    ]
+
+LARGE_ZILLION_PREFIXES = [
+    '', 'primo-', 'secundo-', 'tertio-', 'quarto-', 'quinto-', 'sexto-',
+    'septimo-', 'octavo-', 'nono-'
+    ]
+
+LARGE_ZILLIONS = [
+    '', 'decillion', 'vigintillion', 'trigintillion', 'quadragintillion',
+    'quinquagintillion', 'sexagintillion', 'septuagintillion', 
+    'octogintillion', 'nonagintillion', 'centillion'
+    ]

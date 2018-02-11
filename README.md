@@ -1,20 +1,22 @@
 # zillions
-Functions for naming large integers (using only dictionary words)
+A module for naming large integers
 
-range: -999999999999999999999999999999999999999999999999999999999999999999 
-to +999999999999999999999999999999999999999999999999999999999999999999
+    Primary range: |x| < 10^66
+    Extended range: |x| < 10^306
 
-This is the range of integers that can be named in the short scale using
-words found in dictionaries*.  There are quite a few ad-hoc systems for 
-naming numbers larger than this, but the lack of consistency and 
-consensus, even among the more 'authoritative' options, is a bit 
-unsatisfying, so I plan to stick with the core dictionary words.
+    The primary range is the range of integers that can be named in the short
+    scale (which is used in the English-speaking world) using number words 
+    that can be found in dictionaries.  This is the range enabled by default
+    and the only 'official' names for numbers, apart from a few scattered
+    larger ones like 'googol' and 'centillion'.
+    
+    The function can also name some larger integers if required.  For the
+    extended range, the names of large numbers are no longer standardized,
+    and this program uses a less-common system of words that first saw the
+    light of day in the nineteenth century, credited to a 'W.G. Henkle' and 
+    resurrected and tidied up in the publication 'Word Ways' over a series
+    of articles, including by Rudolf Ondrejka in 1968.
 
-*Particularly, unabridged American dictionaries.  UK English dictionaries
-like the Oxford English Dictionary not to have number words after
-'decillion', which in the long scale allow you to name the exact same 
-range.  Britain traditionally used the long scale, like much of the rest
-of the world, but now uses the short scale in line with the USA.
-
-Much more info on the long and short scales can be found here:
-https://en.wikipedia.org/wiki/Long_and_short_scales
+    Functions:
+        num_to_words(num: int, extended: bool=False) -> str:
+            Returns the English name of a larger number.
