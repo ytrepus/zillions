@@ -48,10 +48,10 @@ def num_to_words(num: int, extended: bool=False) -> str:
     # small names are the names of each group of three digits, and zlist
     # is an iterator containing large number words, the 'zillions'
     small_names = _small_name_gen(digits)
-    zlist = _zlist_gen(digits)
+    zillions_list = _zillions_list_gen(digits)
     
     number_name = []
-    for name, zillion in zip(small_names, zlist):
+    for name, zillion in zip(small_names, zillions_list):
         if name:
             number_name.append(name + zillion)
     number_name = sign_word + ' '.join(number_name)
@@ -70,34 +70,34 @@ def _small_name_gen(digits: str) -> Generator:
 def _get_small_name(group: str) -> str:
     """Name numbers 1 to 999"""
     group = int(group)
-    h_digit = group // 100
-    t_digit = (group % 100) // 10
-    o_digit = group % 10
-    h_name = ONES[h_digit] + " hundred " if h_digit else ""
+    hundreds_digit = group // 100
+    tens_digit = (group % 100) // 10
+    ones_digit = group % 10
+    hundreds_name = ONES[hundreds_digit] + " hundred " if hundreds_digit else ""
     
-    if t_digit == 0:
-        to_name = ONES[o_digit]
-    elif t_digit == 1:
-        to_name = TEENS[o_digit]
+    if tens_digit == 0:
+        tens_and_ones_name = ONES[ones_digit]
+    elif tens_digit == 1:
+        tens_and_ones_name = TEENS[ones_digit]
     else:
-        to_name = TENS[t_digit] + '-' + ONES[o_digit]
+        tens_and_ones_name = TENS[tens_digit] + '-' + ONES[ones_digit]
 
-    name = h_name + to_name
+    name = hundreds_name + tens_and_ones_name
     return re.sub(r'[-\s]$', '', name)
 
-def _zlist_gen(digits: int) -> Generator:
+def _zillions_list_gen(digits: int) -> Generator:
     """Generate a list of large number words required for the number name."""
-    zstart = ceil(len(digits) / 3) - 2
-    if zstart > 20:
-        yield from _large_zlist_gen(zstart)
-        zstart = 20
-    for index in range(zstart, -1, -1):
+    max_zillions_index = ceil(len(digits) / 3) - 2
+    if max_zillions_index > 20:
+        yield from _large_zlist_gen(max_zillions_index)
+        max_zillions_index = 20
+    for index in range(max_zillions_index, -1, -1):
         yield ' ' + ZILLIONS[index]
     yield ''
 
-def _large_zlist_gen(zstart: int) -> Generator:
+def _large_zlist_gen(max_zillions_index: int) -> Generator:
     """Generate names for the extended range of zillions."""
-    for index in range(zstart, 20, -1):
+    for index in range(max_zillions_index, 20, -1):
         prefix = LARGE_ZILLION_PREFIXES[index % 10]
         zillion = LARGE_ZILLIONS[index // 10]
         yield ' ' + prefix + zillion
