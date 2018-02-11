@@ -21,11 +21,9 @@
             Returns the English name of a larger number.
 """
 
-from collections import deque
-from itertools import chain, repeat
-from math import ceil, log10, trunc
+from math import ceil
 import re
-from typing import List, Generator
+from typing import Generator
 
 def num_to_words(num: int, extended: bool=False) -> str:
     """Returns the English name of a large number.
@@ -57,7 +55,7 @@ def num_to_words(num: int, extended: bool=False) -> str:
     number_name = sign_word + ' '.join(number_name)
     return re.sub(r',$', '', number_name)
 
-def _small_name_gen(digits: str) -> Generator:
+def _small_name_gen(digits: str) -> Generator[str, None, None]:
     """Generate a list of number names for each group of three digits"""
     slice_stop = 3 if len(digits) % 3 == 0 else len(digits) % 3
     digit_slice = slice(0, slice_stop)
@@ -85,7 +83,7 @@ def _get_small_name(group: str) -> str:
     name = hundreds_name + tens_and_ones_name
     return re.sub(r'[-\s]$', '', name)
 
-def _zillions_list_gen(digits: int) -> Generator:
+def _zillions_list_gen(digits: int) -> Generator[str, None, None]:
     """Generate a list of large number words required for the number name."""
     max_zillions_index = ceil(len(digits) / 3) - 2
     if max_zillions_index > 20:
@@ -95,7 +93,7 @@ def _zillions_list_gen(digits: int) -> Generator:
         yield ' ' + ZILLIONS[index]
     yield ''
 
-def _large_zlist_gen(max_zillions_index: int) -> Generator:
+def _large_zlist_gen(max_zillions_index: int) -> Generator[str, None, None]:
     """Generate names for the extended range of zillions."""
     for index in range(max_zillions_index, 20, -1):
         prefix = LARGE_ZILLION_PREFIXES[index % 10]
